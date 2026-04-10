@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Substitute Request Form</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f4; color: #1a1a1a; min-height: 100vh; padding: 2rem 1rem; }
+  .wrap { max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .sub { font-size: 14px; color: #6b7280; margin-bottom: 1.5rem; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+  .tabs { display: flex; border-bottom: 1px solid #e5e7eb; margin-bottom: 1.5rem; gap: 0; }
+  .tab { padding: 8px 20px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: none; color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: #111; border-bottom-color: #111; }
+  .tab:hover { color: #111; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; color: #111; background: #fff; outline: none; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+  .field input.err, .field select.err { border-color: #ef4444; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .req { color: #ef4444; margin-left: 2px; }
+  .btn { width: 100%; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; margin-top: 6px; }
+  .btn-primary { background: #111; color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; }
+  .btn-outline:hover { background: #f9fafb; }
+  .btn-danger-sm { background: transparent; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  .btn-danger-sm:hover { background: #fef2f2; }
+  .btn-sm { background: transparent; border: 1px solid #d1d5db; color: #374151; border-radius: 6px; padding: 4px 12px; font-size: 13px; cursor: pointer; }
+  .btn-sm:hover { background: #f9fafb; }
+  .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 10px; display: none; }
+  .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+  .alert-err { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
+  .alert-warn { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+  .badge { font-size: 12px; background: #f3f4f6; color: #6b7280; border-radius: 6px; padding: 3px 10px; }
+  .roster-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .section-label { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  th { text-align: left; padding: 8px 10px; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+  td { padding: 10px 10px; border-bottom: 1px solid #f3f4f6; color: #111; word-break: break-word; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #f3f4f6; color: #6b7280; font-size: 11px; font-weight: 600; }
+  .rank.gold { background: #fef3c7; color: #92400e; }
+  .empty { text-align: center; padding: 3rem 1rem; color: #9ca3af; font-size: 14px; }
+  .col-r { width: 36px; }
+  .col-n { width: 16%; }
+  .col-e { width: 20%; }
+  .col-c { width: 20%; }
+  .col-s { width: 10%; }
+  .col-d { width: 10%; }
+  .col-t { width: 9%; }
+  .col-a { width: 60px; }
+  .admin-field { display: flex; gap: 8px; align-items: center; }
+  .admin-field input { flex: 1; }
+  .unlocked-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; margin-bottom: 1rem; }
+  .unlocked-bar span { font-size: 13px; color: #166534; font-weight: 500; flex: 1; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 1.25rem 0; }
+  .tip { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+  @media (max-width: 500px) { .row2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem">
+    <div>
+      <h1>Substitute request form</h1>
+      <p class="sub">Requests recorded in order received &mdash; first come, first served.</p>
+    </div>
+    <span class="badge" id="total-badge">0 signed up</span>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('signup')">Request a substitute</button>
+      <button class="tab" onclick="switchTab('roster')">Substitute opportunity sign up</button>
+      <button class="tab" onclick="switchTab('admin')">Admin</button>
+    </div>
+
+    <!-- SIGN UP TAB -->
+    <div id="tab-signup">
+      <div class="row2">
+        <div class="field"><label>Full name<span class="req">*</span></label><input type="text" id="f-name" placeholder="Jane Smith"/></div>
+        <div class="field"><label>Email address<span class="req">*</span></label><input type="email" id="f-email" placeholder="jane@example.com"/></div>
+      </div>
+      <div class="field"><label>Course name<span class="req">*</span></label><input type="text" id="f-course" placeholder="e.g. Introduction to Data Science"/></div>
+      <div class="row2">
+        <div class="field"><label>Stream number<span class="req">*</span></label>
+          <select id="f-stream">
+            <option value="">Select stream</option>
+            <option>Stream 1</option><option>Stream 2</option><option>Stream 3</option><option>Stream 4</option><option>Stream 5</option><option>Stream 6</option><option>Stream 7</option><option>Stream 8</option><option>Stream 9</option><option>Stream 10</option>
+          </select>
+        </div>
+        <div class="field"><label>Day<span class="req">*</span></label>
+          <select id="f-day">
+            <option value="">Select day</option>
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Time<span class="req">*</span></label><input type="time" id="f-time"/></div>
+        <div class="field"><label>Date substitute is needed<span class="req">*</span></label><input type="date" id="f-date"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="submitSignup()">Submit request</button>
+      <div class="alert alert-success" id="signup-ok">Your request has been submitted! Check the Roster tab to see your position.</div>
+      <div class="alert alert-err" id="signup-err"></div>
+    </div>
+
+    <!-- ROSTER TAB -->
+    <div id="tab-roster" style="display:none">
+      <div class="roster-hd">
+        <span class="section-label">Substitute opportunities</span>
+        <span style="font-size:12px;color:#9ca3af">Most recent first</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:0.5rem;">
+        <input type="text" id="filter-name" placeholder="Filter by name..." oninput="renderRoster()" style="flex:1;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#111;outline:none;"/>
+        <input type="text" id="filter-course" placeholder="Filter by course..." oninput="renderRoster()" style="flex:1;padding:7px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#111;outline:none;"/>
+      </div>
+      <div style="height:18px;margin-bottom:0.5rem;"><span id="autosave-indicator" style="font-size:12px;color:#166534;opacity:0;transition:opacity 0.4s;"></span></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-r">#</th>
+              <th class="col-n">Name</th>
+              <th class="col-e">Email</th>
+              <th class="col-c">Course</th>
+              <th class="col-s">Stream</th>
+              <th class="col-d">Day</th>
+              <th class="col-t">Time</th>
+              <th class="col-t">Date needed</th>
+              <th class="col-a" id="action-th" style="display:none"></th>
+            </tr>
+          </thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty-state">No sign-ups yet. Be the first!</div>
+    </div>
+
+    <!-- ADMIN TAB -->
+    <div id="tab-admin" style="display:none">
+      <p class="section-label" style="margin-bottom:10px">Admin access</p>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:14px">Enter the admin password to manage sign-ups.</p>
+      <div class="admin-field">
+        <input type="password" id="admin-pw" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')checkAdmin()"/>
+        <button class="btn-sm" onclick="checkAdmin()">Unlock</button>
+      </div>
+      <div class="alert alert-err" id="admin-err" style="margin-top:8px"></div>
+
+      <div id="admin-panel" style="display:none;margin-top:1rem">
+        <div class="unlocked-bar">
+          <span>Admin unlocked</span>
+          <span id="admin-timer" style="font-size:12px;color:#6b7280;">Auto-locks in 5:00</span>
+          <button class="btn-sm" onclick="lockAdmin()">Lock now</button>
+        </div>
+        <p style="font-size:13px;color:#6b7280">Switch to the <strong>Substitute Opportunity</strong> tab &mdash; remove buttons will appear next to each entry.</p>
+
+        <hr class="divider"/>
+        <p class="section-label" style="margin-bottom:10px">Change admin password</p>
+        <div class="field"><label>New password</label><input type="password" id="pw1" placeholder="New password"/></div>
+        <div class="field"><label>Confirm password</label><input type="password" id="pw2" placeholder="Confirm new password"/></div>
+        <button class="btn-sm" onclick="changePassword()">Update password</button>
+        <div class="alert alert-success" id="pw-ok" style="margin-top:8px">Password updated.</div>
+        <div class="alert alert-err" id="pw-err" style="margin-top:8px"></div>
+
+        <hr class="divider"/>
+        <p class="section-label" style="margin-bottom:10px">Danger zone</p>
+        <button class="btn-sm" style="border-color:#fca5a5;color:#dc2626" onclick="clearAll()">Clear all sign-ups</button>
+      </div>
+    </div>
+
+  </div>
+  <p class="tip" style="text-align:center">Requests are saved locally in this browser. Share this page link for others to submit a request.</p>
+</div>
+
+<script>
+  const SKEY = 'signups_v1';
+  const PKEY = 'admin_pw_v1';
+  const QKEY = 'quicknames_v1';
+  const DEFAULT_PW = 'admin123';
+
+  let isAdmin = false;
+  let signups = [];
+  let quickNames = {};
+  let editingIdx = null;
+  let adminLockTimer = null;
+  let adminLockCountdown = null;
+
+  /* ── Storage ── */
+  function save()          { localStorage.setItem(SKEY, JSON.stringify(signups)); }
+  function saveQuickNames(){ localStorage.setItem(QKEY, JSON.stringify(quickNames)); }
+  function getPw()         { return localStorage.getItem(PKEY) || DEFAULT_PW; }
+  function setPw(p)        { localStorage.setItem(PKEY, p); }
+
+  function load() {
+    try { signups    = JSON.parse(localStorage.getItem(SKEY) || '[]'); } catch(e){ signups = []; }
+    try { quickNames = JSON.parse(localStorage.getItem(QKEY) || '{}'); } catch(e){ quickNames = {}; }
+    updateBadge();
+  }
+
+  /* ── Autosave ── */
+  function doSave() {
+    save();
+    saveQuickNames();
+    showSavedMsg();
+  }
+
+  function showSavedMsg() {
+    const el = document.getElementById('autosave-indicator');
+    if (!el) return;
+    el.textContent = 'All changes saved';
+    el.style.opacity = '1';
+    clearTimeout(el._fadeTimer);
+    el._fadeTimer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+  }
+
+  /* ── Helpers ── */
+  function updateBadge() {
+    document.getElementById('total-badge').textContent = signups.length + ' signed up';
+  }
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function fmt(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':');
+    const hr = parseInt(h);
+    return (hr % 12 || 12) + ':' + (m || '00') + ' ' + (hr < 12 ? 'AM' : 'PM');
+  }
+
+  function fmtDate(d) {
+    if (!d) return '';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  /* ── Tabs ── */
+  function switchTab(t) {
+    ['signup', 'roster', 'admin'].forEach(id => {
+      document.getElementById('tab-' + id).style.display = id === t ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab').forEach((el, i) => {
+      el.classList.toggle('active', ['signup', 'roster', 'admin'][i] === t);
+    });
+    if (t === 'roster') renderRoster();
+  }
+
+  /* ── Roster ── */
+  function renderRoster() {
+    const body      = document.getElementById('roster-body');
+    const empty     = document.getElementById('empty-state');
+    const actionTh  = document.getElementById('action-th');
+    actionTh.style.display = isAdmin ? '' : 'none';
+
+    const nameFilter   = (document.getElementById('filter-name')?.value   || '').toLowerCase();
+    const courseFilter = (document.getElementById('filter-course')?.value  || '').toLowerCase();
+
+    const sorted = signups
+      .map((s, i) => ({ ...s, _orig: i }))
+      .sort((a, b) => b.ts - a.ts)
+      .filter(s => s.name.toLowerCase().includes(nameFilter) && s.course.toLowerCase().includes(courseFilter));
+
+    if (!sorted.length) { body.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+
+    body.innerHTML = sorted.map((s, rank) => {
+      const i = s._orig;
+      const qnames = quickNames[i] || [];
+      const namesList = qnames.length
+        ? qnames.map((n, ni) =>
+            `<span style="display:inline-block;background:#f3f4f6;border-radius:5px;padding:2px 8px;font-size:11px;color:#374151;margin:2px 2px 0 0;">
+              ${esc(n)}${isAdmin ? `<span onclick="delQuickName(${i},${ni})" style="cursor:pointer;color:#dc2626;margin-left:3px;font-weight:600;">&times;</span>` : ''}
+            </span>`).join('')
+        : '<span style="font-size:11px;color:#9ca3af">None yet</span>';
+
+      if (isAdmin && editingIdx === i) {
+        return `
+        <tr style="background:#fffbeb;">
+          <td><span class="rank${rank===0?' gold':''}">${rank+1}</span></td>
+          <td><input id="e-name"   value="${esc(s.name)}"   style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"/></td>
+          <td><input id="e-email"  value="${esc(s.email)}"  style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;"/></td>
+          <td><input id="e-course" value="${esc(s.course)}" style="width:100%;padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;"/></td>
+          <td><select id="e-stream" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
+            ${['Stream 1','Stream 2','Stream 3','Stream 4','Stream 5','Stream 6','Stream 7','Stream 8','Stream 9','Stream 10']
+              .map(o => `<option${s.stream===o?' selected':''}>${o}</option>`).join('')}
+          </select></td>
+          <td><select id="e-day" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
+            ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+              .map(o => `<option${s.day===o?' selected':''}>${o}</option>`).join('')}
+          </select></td>
+          <td><input id="e-time" type="time" value="${s.time||''}" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;"/></td>
+          <td><input id="e-date" type="date" value="${s.date||''}" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;"/></td>
+          <td style="white-space:nowrap;">
+            <button class="btn-sm" style="font-size:11px;padding:3px 8px;margin-bottom:3px;" onclick="saveEdit(${i})">Save</button>
+            <button class="btn-sm" style="font-size:11px;padding:3px 8px;" onclick="cancelEdit()">Cancel</button>
+          </td>
+        </tr>
+        <tr style="background:#fafafa;">
+          <td colspan="2" style="padding:6px 10px 10px 10px;border-bottom:1px solid #e5e7eb;">
+            <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;">Quick sign-ups</div>
+            <div style="margin-bottom:6px;">${namesList}</div>
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="qn-${i}" placeholder="Add your name" style="flex:1;padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;color:#111;outline:none;" onkeydown="if(event.key==='Enter')addQuickName(${i})"/>
+              <button class="btn-sm" style="padding:5px 12px;font-size:12px;" onclick="addQuickName(${i})">Add</button>
+            </div>
+          </td>
+          <td colspan="7" style="border-bottom:1px solid #e5e7eb;"></td>
+        </tr>`;
+      }
+
+      return `
+      <tr>
+        <td><span class="rank${rank===0?' gold':''}">${rank+1}</span></td>
+        <td>${esc(s.name)}</td>
+        <td style="color:#6b7280;font-size:12px">${esc(s.email)}</td>
+        <td>${esc(s.course)}</td>
+        <td>${esc(s.stream.replace('Stream ','S'))}</td>
+        <td>${esc(s.day.slice(0,3))}</td>
+        <td>${esc(fmt(s.time))}</td>
+        <td style="font-size:12px">${fmtDate(s.date)}</td>
+        <td style="display:${isAdmin?'table-cell':'none'};">
+          ${isAdmin ? `<div style="display:flex;gap:4px;">
+            <button class="btn-sm" style="font-size:11px;padding:3px 8px;" onclick="startEdit(${i})">Edit</button>
+            <button class="btn-danger-sm" onclick="del(${i})">Del</button>
+          </div>` : ''}
+        </td>
+      </tr>
+      <tr style="background:#fafafa;">
+        <td colspan="2" style="padding:6px 10px 10px 10px;border-bottom:1px solid #e5e7eb;">
+          <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;">Quick sign-ups</div>
+          <div style="margin-bottom:6px;">${namesList}</div>
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="qn-${i}" placeholder="Add your name" style="flex:1;padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;color:#111;outline:none;" onkeydown="if(event.key==='Enter')addQuickName(${i})"/>
+            <button class="btn-sm" style="padding:5px 12px;font-size:12px;" onclick="addQuickName(${i})">Add</button>
+          </div>
+        </td>
+        <td colspan="${isAdmin ? 7 : 6}" style="border-bottom:1px solid #e5e7eb;"></td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Admin roster actions ── */
+  function startEdit(i)  { editingIdx = i;    renderRoster(); }
+  function cancelEdit()  { editingIdx = null;  renderRoster(); }
+
+  function saveEdit(i) {
+    signups[i].name   = document.getElementById('e-name').value.trim()   || signups[i].name;
+    signups[i].email  = document.getElementById('e-email').value.trim()  || signups[i].email;
+    signups[i].course = document.getElementById('e-course').value.trim() || signups[i].course;
+    signups[i].stream = document.getElementById('e-stream').value;
+    signups[i].day    = document.getElementById('e-day').value;
+    signups[i].time   = document.getElementById('e-time').value;
+    signups[i].date   = document.getElementById('e-date').value;
+    editingIdx = null;
+    doSave();
+    renderRoster();
+  }
+
+  function del(i) {
+    if (!isAdmin) return;
+    if (!confirm('Remove this entire registration?')) return;
+    signups.splice(i, 1);
+    const newQ = {};
+    Object.keys(quickNames).forEach(k => {
+      const ki = parseInt(k);
+      if (ki < i)       newQ[ki]     = quickNames[k];
+      else if (ki > i)  newQ[ki - 1] = quickNames[k];
+    });
+    quickNames = newQ;
+    editingIdx = null;
+    doSave();
+    updateBadge();
+    renderRoster();
+  }
+
+  function delQuickName(rowIdx, nameIdx) {
+    if (!isAdmin) return;
+    if (!confirm('Remove this name?')) return;
+    quickNames[rowIdx].splice(nameIdx, 1);
+    doSave();
+    renderRoster();
+  }
+
+  function clearAll() {
+    if (!isAdmin) return;
+    if (!confirm('Remove ALL sign-ups? This cannot be undone.')) return;
+    signups = [];
+    quickNames = {};
+    doSave();
+    updateBadge();
+    renderRoster();
+  }
+
+  /* ── Quick name (public) ── */
+  function addQuickName(idx) {
+    const input = document.getElementById('qn-' + idx);
+    const name  = input.value.trim();
+    if (!name) { input.style.borderColor = '#ef4444'; return; }
+    input.style.borderColor = '';
+    if (!quickNames[idx]) quickNames[idx] = [];
+    quickNames[idx].push(name);
+    input.value = '';
+    doSave();
+    renderRoster();
+  }
+
+  /* ── Submit signup ── */
+  function submitSignup() {
+    const ids = ['f-name','f-email','f-course','f-stream','f-day','f-time','f-date'];
+    let ok = true;
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('err');
+      if (!el.value.trim()) { el.classList.add('err'); ok = false; }
+    });
+    if (!ok) { showAlert('signup-err', 'Please fill in all required fields.'); return; }
+    const email = document.getElementById('f-email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('f-email').classList.add('err');
+      showAlert('signup-err', 'Please enter a valid email address.'); return;
+    }
+    signups.push({
+      name:   document.getElementById('f-name').value.trim(),
+      email,
+      course: document.getElementById('f-course').value.trim(),
+      stream: document.getElementById('f-stream').value,
+      day:    document.getElementById('f-day').value,
+      time:   document.getElementById('f-time').value,
+      date:   document.getElementById('f-date').value,
+      ts:     Date.now()
+    });
+    save();
+    updateBadge();
+    ids.forEach(id => { const el = document.getElementById(id); el.value = ''; el.classList.remove('err'); });
+    document.getElementById('signup-err').style.display = 'none';
+    showAlert('signup-ok', null, 4000);
+  }
+
+  /* ── Admin auth ── */
+  function checkAdmin() {
+    const entered = document.getElementById('admin-pw').value;
+    if (entered === getPw()) {
+      isAdmin = true;
+      document.getElementById('admin-panel').style.display = 'block';
+      document.getElementById('admin-err').style.display   = 'none';
+      document.getElementById('admin-pw').value = '';
+      startAdminTimer();
+    } else {
+      showAlert('admin-err', 'Incorrect password.');
+    }
+  }
+
+  function startAdminTimer() {
+    clearTimeout(adminLockTimer);
+    clearInterval(adminLockCountdown);
+    let secsLeft = 300;
+    updateTimerDisplay(secsLeft);
+    adminLockCountdown = setInterval(() => {
+      secsLeft--;
+      updateTimerDisplay(secsLeft);
+      if (secsLeft <= 0) { clearInterval(adminLockCountdown); lockAdmin(); }
+    }, 1000);
+    adminLockTimer = setTimeout(lockAdmin, 300000);
+  }
+
+  function updateTimerDisplay(secs) {
+    const el = document.getElementById('admin-timer');
+    if (!el) return;
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    el.textContent = 'Auto-locks in ' + m + ':' + String(s).padStart(2, '0');
+    el.style.color  = secs <= 60 ? '#dc2626' : '#6b7280';
+  }
+
+  function lockAdmin() {
+    clearTimeout(adminLockTimer);
+    clearInterval(adminLockCountdown);
+    isAdmin     = false;
+    editingIdx  = null;
+    document.getElementById('admin-panel').style.display = 'none';
+    renderRoster();
+  }
+
+  function changePassword() {
+    const p1 = document.getElementById('pw1').value;
+    const p2 = document.getElementById('pw2').value;
+    ['pw-ok','pw-err'].forEach(id => document.getElementById(id).style.display = 'none');
+    if (!p1)      { showAlert('pw-err', 'Password cannot be empty.');   return; }
+    if (p1 !== p2){ showAlert('pw-err', 'Passwords do not match.');     return; }
+    setPw(p1);
+    document.getElementById('pw1').value = '';
+    document.getElementById('pw2').value = '';
+    showAlert('pw-ok', null, 3000);
+  }
+
+  /* ── Utilities ── */
+  function showAlert(id, msg, duration) {
+    const el = document.getElementById(id);
+    if (msg) el.textContent = msg;
+    el.style.display = 'block';
+    if (duration) setTimeout(() => { el.style.display = 'none'; }, duration);
+  }
+
+  load();
+</script>
+</body>
+</html>
